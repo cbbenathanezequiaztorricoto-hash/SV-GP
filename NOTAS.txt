@@ -1,0 +1,10 @@
+¿Qué es una librería en programación en general?
+- Es una colección de programas que desarrollaron otros programadores
+- Apartir de ellas puedes reautilzar dichos programas
+
+¿Qué es dotenv?
+Es una librería que contiene códigos para lectura de archivos y mandar datos
+Se utiliza para implementar seguridad en el codigo evitando de cargar datos sensibles
+en el codigo enviandolos en un archivo ".env" el cual se lee con el paquete de códigos dotenv
+junto con otro porgrama de Node js que es procces.env 
+y este devuelve los valores de las variables sensibles.

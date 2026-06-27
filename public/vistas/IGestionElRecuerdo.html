@@ -1,0 +1,1196 @@
+<!-- SV_GP/public/vistas/IGestionElRecuerdo.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SV & GP</title>
+    <link rel="stylesheet" href="../estilos/IGestionElRecuerdo.css">
+        <!-- ✅ SweetAlert2 para notificaciones elegantes -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+
+    <header>
+        <div>
+            <img id="logoAdmin" src="../assets/logo.jpg" alt="Logo Local">
+            <div>
+                <h2>IGestionElRecuerdo</h2>
+                <small>Bienvenido: <span id="nombreAdmin">...</span></small>
+            </div>
+        </div>
+        <div>
+            <button id="theme-toggle" class="btn-theme-toggle" aria-label="Cambiar entre modo claro y oscuro">
+                <span id="theme-icon">🌙</span>
+                <!-- <span id="theme-text">Modo Oscuro</span> -->
+             </button>
+            <button onclick="cerrarSesion()">Cerrar Sesión</button>
+        </div>
+
+    </header>
+
+    <nav class="admin-nav">
+        <a href="#" class="nav-link active" onclick="cambiarModulo('modulo-admin', this)">Módulo de Administración</a>
+        <a href="#" class="nav-link" onclick="cambiarModulo('modulo-pedidos', this)">Módulo Gestion de Pedidos</a>
+        <a href="#" class="nav-link" onclick="cambiarModulo('modulo-ventas', this)">Módulo de Ventas</a>
+    </nav>
+
+    <div class="admin-layout">
+        
+        <aside class="side-nav" id="sidebar">
+            <!-- se cargará dinamicamente con casos de uso según el módulo seleccionado -->
+        </aside>
+
+        <main class="container-main">
+            <!-- MODULO DE ADMINISTRACION -->
+            <section id="modulo-admin" class="modulo-activo">
+                <div id="sub-menu" class="sub-modulo activo">
+                    <div class="cards-grid">
+                        <div class="card">
+                            <h3>Registrar al Menú</h3>
+                            <div id="mensajeStatus"></div>
+                            <form id="formMenu">
+                                <div class="form-group">
+                                    <label for="nombrePlato">Nombre del item *</label>
+                                    <input type="text" id="nombrePlato" required placeholder="item">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="idCategoria">Categoría Menú *</label>
+                                    <select id="idCategoria" required>
+                                        <option value="">Cargando categorías...</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="precioActual">Precio (Bs) *</label>
+                                    <input type="number" id="precioActual" step="0.01" min="0" required placeholder="65.00">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="descripcion">Descripción (Opcional)*</label>
+                                    <textarea id="descripcion" placeholder="Detalles de preparación o ingredientes incluidos..."></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="imagenPlato">Imagen del Plato</label>
+                                    <input type="file" id="imagenPlato" accept="image/*" onchange="previewImagePlato(event)">
+                                    <div id="preview-plato" style="margin-top:8px;">
+                                        <img id="preview-plato-img" style="max-width:100px; max-height:100px; display:none; border-radius:8px;">
+                                    </div>
+                                    <small style="color:var(--text-light);">Formatos: JPG, PNG, GIF. Máx 2MB.</small>
+                                </div>
+                                <button type="submit" class="btn-submit">Guardar en Menú</button>
+                            </form>
+                        </div>
+                        
+                        <div class="card">
+                            <h3>Menú Registrado Activo</h3>
+                            <div class="table-responsive">
+                                <div class="filter-group" style="margin-bottom: 15px;">
+                                    <label>Filtrar por: </label>
+                                    <select id="filtroCategoria" onchange="filtrarTabla()">
+                                        <option value="todos">Todos los productos</option>
+                                        <option value="Platos">Platos</option>
+                                        <option value="Bebidas">Bebidas</option>
+                                        <option value="Vinos">Vinos</option>
+                                        <option value="Bebidas Alcohólicas">Bebidas Alcohólicas</option>
+                                    </select>
+                                </div>
+
+                                <table id="tablaMenu">
+                                    <thead>
+                                        <tr>
+                                            <th>Imagen</th>
+                                            <th>Nombre</th>
+                                            <th>Categoría</th>
+                                            <th>Precio</th>
+                                            <th>Descripción</th>
+                                            <th>Receta</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- SUB-MÓDULO: USUARIOS -->
+                <div id="sub-usuarios" class="sub-modulo">
+                    <div class="cards-grid">
+                        <!-- <div class="form-section"> -->
+                            <div class="card">
+                                <h3>Registrar Usuario</h3>
+                                <div id="mensajeStatusUsuarios"></div>
+                                
+                                <form id="formUsuario">
+                                    <input type="hidden" id="idEmpleadoEdit" value="">
+                                    <div class="grid-2cols">
+                                        <div class="form-group">
+                                            <label for="primerNombre">Primer Nombre *</label>
+                                            <input type="text" id="primerNombre" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="segundoNombre">Segundo Nombre</label>
+                                            <input type="text" id="segundoNombre">
+                                        </div>
+                                    </div>
+
+                                    <div class="grid-2cols">
+                                        <div class="form-group">
+                                            <label for="primerApellido">Primer Apellido *</label>
+                                            <input type="text" id="primerApellido" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="segundoApellido">Segundo Apellido</label>
+                                            <input type="text" id="segundoApellido">
+                                        </div>
+                                    </div>
+
+                                    <div class="grid-2cols">
+                                        <div class="form-group">
+                                            <label for="ci">Carnet de Identidad *</label>
+                                            <input type="text" id="ci" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="edad">Edad *</label>
+                                            <input type="number" id="edad" min="18" required>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="fechaContratacion">Fecha de Contratación *</label>
+                                        <input type="date" id="fechaContratacion" required>
+                                    </div>
+
+                                    <div class="grid-2cols">
+                                        <div class="form-group">
+                                            <label for="idRol">Rol en Sistema *</label>
+                                            <select id="idRol" required><option value="">Cargando...</option></select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="idPuesto">Puesto Laboral *</label>
+                                            <select id="idPuesto" required><option value="">Cargando...</option></select>
+                                        </div>
+                                    </div>
+
+                                    <hr class="divider">
+                                    <h4>Credenciales de Acceso</h4>
+
+                                    <div class="form-group">
+                                        <label for="username">Nombre de Usuario *</label>
+                                        <input type="text" id="username" required>
+                                    </div>
+                                    <div class="form-group" style="position:relative;">
+                                        <label for="password">Contraseña *</label>
+                                        <div style="display:flex; gap:8px; align-items:center;">
+                                            <input type="password" id="password" required style="flex:1;">
+                                            <button type="button" onclick="togglePasswordVisibility()" style="border:none; cursor:pointer; padding:8px;">
+                                                Mostrar
+                                            </button>
+                                        </div>
+                                        <small style="color:var(--text);">Deje vacío para mantener la actual (solo al editar).</small>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="fotoPerfil">Foto de Perfil</label>
+                                        <input type="file" id="fotoPerfil" accept="image/*">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Módulos permitidos</label>
+                                        <div class="checkbox-group" style="display:flex;flex-wrap:wrap;gap:10px;">
+                                            <label style="font-weight:400;"><input type="checkbox" name="modulosPermitidos" value="admin"> Administración</label>
+                                            <label style="font-weight:400;"><input type="checkbox" name="modulosPermitidos" value="pedidos" checked> Pedidos</label>
+                                            <label style="font-weight:400;"><input type="checkbox" name="modulosPermitidos" value="ventas" checked> Ventas</label>
+                                        </div>
+                                        <small style="color:var(--text-light);display:block;margin-top:0.4rem;">Seleccione qué secciones podrá ver este usuario.</small>
+                                    </div>
+
+                                    <button type="submit" class="btn-submit" id="btnGuardarUsuario">Registrar Personal</button>
+                                    <button type="button" class="btn-cancel" id="btnCancelarEdicion" style="display:none; margin-left:8px;" onclick="resetearFormularioUsuario()">Cancelar edición</button>
+                                </form>
+                            </div>
+                        <!-- </div> -->
+
+                        <!-- <div class="table-section"> -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3>Usuarios Registrados</h3>
+                                    <button onclick="cargarUsuarios()" class="btn-refresh">Actualizar</button>
+                                </div>
+                                
+                                <div class="table-responsive">
+                                    <table id="tablaUsuarios">
+                                        <thead>
+                                            <tr>
+                                                <th>CI</th>
+                                                <th>Nombre Completo</th>
+                                                <th>Rol / Puesto</th>
+                                                <th>Usuario</th>
+                                                <th>Último login</th>
+                                                <th>Estado</th>
+                                                <th>Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tablaUsuariosCuerpo">
+                                            <tr><td colspan="6" style="text-align: center;">Cargando...</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        <!-- </div> -->
+                    </div>
+                </div>
+                <!-- SUB-MÓDULO: MESAS -->
+                <div id="sub-mesas" class="sub-modulo">
+                    <div class="cards-grid">
+                        <div class="card">
+                            <h3 id="formMesaTitulo">Registrar Nueva Mesa</h3>
+                            <div id="mensajeStatus"></div>
+                            
+                            <form id="formMesa">
+                                <input type="hidden" id="idMesa" value="">
+
+                                <div class="form-group">
+                                    <label for="numeroMesa">Número de Mesa *</label>
+                                    <input type="number" id="numeroMesa" required min="1" placeholder="Ej. 12">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="capacidad">Capacidad de Asientos *</label>
+                                    <input type="number" id="capacidad" required min="1" placeholder="Ej. 4">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="estadoMesa">Estado Inicial *</label>
+                                    <select id="estadoMesa" required>
+                                        <option value="Libre">Libre</option>
+                                        <option value="Ocupada">Ocupada</option>
+                                        <option value="Reservada">Reservada</option>
+                                    </select>
+                                </div>
+
+                                <button type="submit" class="btn-submit" id="btnGuardarMesa">Guardar Mesa</button>
+                                <button type="button" id="btnCancelarEdicion" style="background-color: #7f8c8d; color: white; width: 100%; margin-top: 10px; display: none;" onclick="resetearFormularioMesa()">Cancelar Edición</button>
+                            </form>
+                        </div>
+
+                        <div class="card">
+                            <h3>Mesas en el Salón</h3>
+                            <div class="table-responsive">
+                                <table id="tablaMesas">
+                                    <thead>
+                                        <tr>
+                                            <th>Número Mesa</th>
+                                            <th>Capacidad</th>
+                                            <th>Estado Actual</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tablaMesasCuerpo">
+                                        <tr><td colspan="4" style="text-align: center;">Cargando datos del salón...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- SUB-MÓDULO: TURNOS DE LIMPIEZA -->
+                <div id="sub-turnos" class="sub-modulo">
+                    <div class="cards-grid">
+                        <div class="card">
+                            <h3 id="formTurnoTitulo">Asignar Turno de Limpieza</h3>
+                            <div id="mensajeStatus"></div>
+                            
+                            <form id="formTurno">
+                                <input type="hidden" id="idTurno" value="">
+
+                                <div class="form-group">
+                                    <label for="idEmpleado">Empleado Responsable *</label>
+                                    <select id="idEmpleado" required>
+                                        <option value="">Cargando...</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="idArea">Área a Limpiar *</label>
+                                    <select id="idArea" required>
+                                        <option value="">Cargando...</option>
+                                    </select>
+                                </div>
+
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                    <div class="form-group">
+                                        <label for="diaSemana">Día de la Semana *</label>
+                                        <select id="diaSemana" required>
+                                            <option value="Lunes">Lunes</option>
+                                            <option value="Martes">Martes</option>
+                                            <option value="Miércoles">Miércoles</option>
+                                            <option value="Jueves">Jueves</option>
+                                            <option value="Viernes">Viernes</option>
+                                            <option value="Sábado">Sábado</option>
+                                            <option value="Domingo">Domingo</option>
+                                        </select>
+                                    </div>
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                        <div class="form-group">
+                                            <label for="horaInicio">H. Inicio *</label>
+                                            <input type="time" id="horaInicio" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="horaFin">H. Fin *</label>
+                                            <input type="time" id="horaFin" required>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="observaciones">Observaciones</label>
+                                    <textarea id="observaciones" placeholder="Instrucciones específicas..."></textarea>
+                                </div>
+
+                                <button type="submit" class="btn-submit" id="btnGuardarTurno">Guardar Turno</button>
+                                <button type="button" id="btnCancelarEdicion" style="background-color: #7f8c8d; color: white; width: 100%; margin-top: 10px; display: none;" onclick="cancelarEdicion()">Cancelar Edición</button>
+                            </form>
+                        </div>
+
+                        <div class="card">
+                            <h3>Registro de Turnos</h3>
+                            <div class="table-responsive">
+                                <table id="tablaTurnos">
+                                    <thead>
+                                        <tr>
+                                            <th>Día</th>
+                                            <th>Horario</th>
+                                            <th>Área</th>
+                                            <th>Empleado</th>
+                                            <th>Estado</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tablaTurnosCuerpo">
+                                        <tr><td colspan="6" style="text-align: center;">Cargando turnos...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div> 
+                </div>
+                <!-- SUB-MÓDULO: ROLES -->
+                <div id="sub-roles" class="sub-modulo">
+                    <div class="cards-grid">
+                        <div class="card">
+                            <h3>Registrar Rol en Sistema</h3>
+                            <div id="mensajeStatusRoles"></div>
+                            <form id="formRol">
+                                <input type="hidden" id="idRolEdit" value="">
+                                <div class="form-group">
+                                    <label for="nombreRol">Nombre del Rol *</label>
+                                    <input type="text" id="nombreRol" required placeholder="Ej. Cajero">
+                                    <div id="panel-permisos" style="margin-top:15px; display:none;">
+                                        <h4>Permisos del Rol</h4>
+                                        <div id="permisos-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px,1fr)); gap:10px;">
+                                            <!-- Se llenará dinámicamente -->
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn-submit" id="btnGuardarRol">Guardar Rol</button>
+                                <button type="button" class="btn-delete" id="btnCancelarRol" style="display:none; margin-top:10px; width:100%;" onclick="cancelarEdicionRol()">Cancelar Edición</button>
+                            </form>
+                        </div>
+                        <div class="card">
+                            <h3>Roles Activos</h3>
+                            <table id="tablaRoles">
+                                <thead><tr><th>ID</th><th>Nombre del Rol</th><th>Acciones</th></tr></thead>
+                                <tbody id="tablaRolesCuerpo"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <!-- SUB-MÓDULO: MÉTODOS DE PAGO -->
+                <div id="sub-pagos" class="sub-modulo">
+                    <div class="cards-grid">
+                        <div class="card">
+                            <h3>Registrar Método de Pago</h3>
+                            <div id="mensajeStatusPagos"></div>
+                            <form id="formMetodoPago">
+                                <input type="hidden" id="idMetodoPagoEdit" value="">
+                                <div class="form-group">
+                                    <label for="nombreMetodoPago">Nombre (Ej. Efectivo, QR, Tarjeta) *</label>
+                                    <input type="text" id="nombreMetodoPago" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="qrUrl">URL de Imagen QR (Opcional)</label>
+                                    <input type="text" id="qrUrl" placeholder="https://mi-qr.com/qr.jpg">
+                                    <small>Solo para pagos mediante transferencia bancaria.</small>
+                                </div>
+                                <button type="submit" class="btn-submit" id="btnGuardarMetodo">Guardar Método</button>
+                                <button type="button" class="btn-delete" id="btnCancelarMetodo" style="display:none; margin-top:10px; width:100%;" onclick="cancelarEdicionMetodo()">Cancelar Edición</button>
+                            </form>
+                        </div>
+                        <div class="card">
+                            <h3>Métodos de Pago Disponibles</h3>
+                            <table id="tablaMetodosPago">
+                                <thead><tr><th>ID</th><th>Método</th><th>Código QR</th><th>Acciones</th></tr></thead>
+                                <tbody id="tablaMetodosCuerpo"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <!-- SUB-MÓDULO: INGREDIENTES -->
+                <div id="sub-ingredientes" class="sub-modulo">
+                    <div class="cards-grid">
+                        <div class="card">
+                            <h3 id="formIngredienteTitulo">Registrar Ingrediente</h3>
+                            <div id="mensajeStatusIngredientes"></div>
+                            <form id="formIngrediente">
+                                <input type="hidden" id="idIngredienteEdit" value="">
+                    
+                                <div class="grid-2cols">
+                                    <div class="form-group">
+                                        <label for="nombreIngrediente">Nombre del Ingrediente *</label>
+                                        <input type="text" id="nombreIngrediente" required
+                                            placeholder="Ej. Carne de res">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="unidadMedida">Unidad de Medida *</label>
+                                        <select id="unidadMedida" required>
+                                            <option value="kg">kg</option>
+                                            <option value="g">g</option>
+                                            <option value="lt">lt</option>
+                                            <option value="ml">ml</option>
+                                            <option value="unidad">unidad</option>
+                                            <option value="docena">docena</option>
+                                            <option value="porcion">porción</option>
+                                        </select>
+                                    </div>
+                                </div>
+                    
+                                <div class="grid-2cols">
+                                    <div class="form-group">
+                                        <label for="stockActual">Stock Actual *</label>
+                                        <input type="number" id="stockActual" step="0.01" min="0" required
+                                            placeholder="Ej. 15.00">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="stockMinimo">Stock Mínimo (Alerta) *</label>
+                                        <input type="number" id="stockMinimo" step="0.01" min="0" required
+                                            placeholder="Ej. 3.00">
+                                    </div>
+                                </div>
+                    
+                                <div class="form-group">
+                                    <label for="precioActualCompra">Precio de Compra Actual (Bs.) *</label>
+                                    <input type="number" id="precioActualCompra" step="0.01" min="0" required
+                                        placeholder="Ej. 45.00">
+                                    <small style="color:var(--text-light);">
+                                        Al actualizar el precio, el historial se registra automáticamente.
+                                    </small>
+                                </div>
+                                <div class="form-group">
+                                    <label for="idProveedor">Proveedor</label>
+                                    <select id="idProveedor">
+                                        <option value="">Sin proveedor</option>
+                                    </select>
+                                </div>
+                                <div style="display:flex;gap:10px;">
+                                    <button type="submit" class="btn-submit" id="btnGuardarIngrediente">
+                                        Guardar Ingrediente
+                                    </button>
+                                    <button type="button" class="btn-delete" id="btnCancelarIngrediente"
+                                            style="display:none;"
+                                            onclick="cancelarEdicionIngrediente()">
+                                        Cancelar Edición
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Inventario de Ingredientes</h3>
+                                <button class="btn-refresh" onclick="cargarIngredientes()">Actualizar</button>
+                            </div>
+                            <div class="table-responsive">
+                                <table id="tablaIngredientes">
+                                    <thead>
+                                        <tr>
+                                            <th>Nombre</th>
+                                            <th>Unidad</th>
+                                            <th>Stock Actual</th>
+                                            <th>Stock Mínimo</th>
+                                            <th>Precio Compra</th>
+                                            <th>Proveedor</th>
+                                            <th>Estado</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tablaIngredientesCuerpo">
+                                        <tr><td colspan="7" style="text-align:center;">Cargando...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- SUB-MÓDULO: PROVEEDORES -->
+                <div id="sub-proveedores" class="sub-modulo">
+                    <div class="cards-grid">
+                        <div class="card">
+                            <h3>Gestionar Proveedores</h3>
+                            <div id="msgProveedores" style="display:none;"></div>
+                            <form id="formProveedor">
+                                <input type="hidden" id="idProveedorEdit" value="">
+                                <div class="grid-2cols">
+                                    <div class="form-group">
+                                        <label for="nombreProveedor">Nombre *</label>
+                                        <input type="text" id="nombreProveedor" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="contactoProveedor">Contacto</label>
+                                        <input type="text" id="contactoProveedor">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="telefonoProveedor">Teléfono</label>
+                                        <input type="text" id="telefonoProveedor">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="emailProveedor">Email</label>
+                                        <input type="email" id="emailProveedor">
+                                    </div>
+                                    <div class="form-group" style="grid-column: span 2;">
+                                        <label for="direccionProveedor">Dirección</label>
+                                        <input type="text" id="direccionProveedor">
+                                    </div>
+                                    <div class="form-group" style="display:flex;align-items:center;">
+                                        <label>
+                                            <span>Activo</span>
+                                            <input type="checkbox" id="activoProveedor" checked>
+                                        </label>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn-submit" id="btnGuardarProveedor" onclick="guardarProveedor()">Guardar Proveedor</button>
+                                <button type="button" class="btn-delete" id="btnCancelarProveedor" style="display:none;" onclick="cancelarEdicionProveedor()">Cancelar</button>
+                            </form>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Lista de Proveedores</h3>
+                                <button class="btn-refresh" onclick="cargarProveedores()">Actualizar</button>
+                            </div>
+                            <div class="table-responsive">
+                                <table id="tablaProveedores">
+                                    <thead><tr><th>ID</th><th>Nombre</th><th>Contacto</th><th>Teléfono</th><th>Email</th><th>Estado</th><th>Acciones</th></tr></thead>
+                                    <tbody id="tablaProveedoresCuerpo"><tr><td colspan="7" style="text-align:center;">Cargando...</td></tr></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- SUB-MÓDULO: CATEGORÍAS -->
+                <div id="sub-categorias" class="sub-modulo">
+                    <div class="cards-grid">
+                        <div class="card">
+                            <h3>Gestionar Categorías del Menú</h3>
+                            <div id="msgCategorias" style="display:none;"></div>
+                            <form id="formCategoria">
+                                <input type="hidden" id="idCategoriaEdit" value="">
+                                <div class="form-group">
+                                    <label for="nombreCategoria">Nombre de la Categoría *</label>
+                                    <input type="text" id="nombreCategoria" required placeholder="Ej. Postres">
+                                </div>
+                                <div style="display:flex;gap:10px;">
+                                    <button type="submit" class="btn-submit" id="btnGuardarCategoria">Guardar Categoría</button>
+                                    <button type="button" class="btn-delete" id="btnCancelarCategoria" style="display:none;" onclick="cancelarEdicionCategoria()">Cancelar</button>
+                                </div>
+                            </form>
+                        </div>
+                    
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Lista de Categorías</h3>
+                                <button class="btn-refresh" onclick="cargarCategorias()">Actualizar</button>
+                            </div>
+                            <div class="table-responsive">
+                                <table id="tablaCategorias">
+                                    <thead><tr><th>ID</th><th>Nombre</th><th>Acciones</th></tr></thead>
+                                    <tbody id="tablaCategoriasCuerpo"><tr><td colspan="3" style="text-align:center;">Cargando...</td></tr></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SUB-MÓDULO: CLIENTES -->
+                <div id="sub-clientes" class="sub-modulo">
+                    <div class="cards-grid">
+                        <div class="card">
+                            <h3>Registrar / Editar Cliente</h3>
+                            <div id="msgClientes" style="display:none;"></div>
+                            <form id="formCliente">
+                                <input type="hidden" id="idClienteEdit" value="">
+                                <div class="grid-2cols">
+                                    <div class="form-group">
+                                        <label for="cliPrimerNombre">Primer Nombre *</label>
+                                        <input type="text" id="cliPrimerNombre" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="cliSegundoNombre">Segundo Nombre</label>
+                                        <input type="text" id="cliSegundoNombre">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="cliPrimerApellido">Primer Apellido *</label>
+                                        <input type="text" id="cliPrimerApellido" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="cliSegundoApellido">Segundo Apellido</label>
+                                        <input type="text" id="cliSegundoApellido">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="cliEmail">Email *</label>
+                                        <input type="email" id="cliEmail" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="cliTelefono">Teléfono</label>
+                                        <input type="text" id="cliTelefono">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="cliNitCi">NIT / CI</label>
+                                        <input type="text" id="cliNitCi">
+                                    </div>
+                                </div>
+                                <div style="display:flex;gap:10px;">
+                                    <button type="submit" class="btn-submit" id="btnGuardarCliente">Guardar Cliente</button>
+                                    <button type="button" class="btn-delete" id="btnCancelarCliente" style="display:none;" onclick="cancelarEdicionCliente()">Cancelar</button>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Clientes Registrados</h3>
+                                <div style="display:flex;gap:8px;">
+                                    <input type="text" id="buscarCliente" placeholder="Buscar por nombre, CI, email..." style="width:200px;">
+                                    <button class="btn-refresh" onclick="cargarClientes()">Buscar</button>
+                                    <button class="btn-refresh" onclick="document.getElementById('buscarCliente').value='';cargarClientes();">Mostrar todos</button>
+                                </div>
+                            </div>
+                            <div class="table-responsive">
+                                <table id="tablaClientes">
+                                    <thead><tr><th>NIT/CI</th><th>Nombre</th><th>Email</th><th>Teléfono</th><th>Registro</th><th>Acciones</th></tr></thead>
+                                    <tbody id="tablaClientesCuerpo"><tr><td colspan="6" style="text-align:center;">Cargando...</td></tr></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SUB-MÓDULO: PUESTOS LABORALES -->
+                <div id="sub-puestos" class="sub-modulo">
+                    <div class="cards-grid">
+                        <div class="card">
+                            <h3>Gestionar Puestos</h3>
+                            <div id="msgPuestos" style="display:none;"></div>
+                            <form id="formPuesto">
+                                <input type="hidden" id="idPuestoEdit" value="">
+                                <div class="grid-2cols">
+                                    <div class="form-group">
+                                        <label for="nombrePuesto">Nombre del Puesto *</label>
+                                        <input type="text" id="nombrePuesto" required placeholder="Ej. Cocinero">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="salarioBase">Salario Base (Bs.) *</label>
+                                        <input type="number" id="salarioBase" step="0.01" min="0" required placeholder="3500.00">
+                                    </div>
+                                </div>
+                                <div style="display:flex;gap:10px;">
+                                    <button type="submit" class="btn-submit" id="btnGuardarPuesto">Guardar Puesto</button>
+                                    <button type="button" class="btn-delete" id="btnCancelarPuesto" style="display:none;" onclick="cancelarEdicionPuesto()">Cancelar</button>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Puestos Activos</h3>
+                                <button class="btn-refresh" onclick="cargarPuestos()">Actualizar</button>
+                            </div>
+                            <div class="table-responsive">
+                                <table id="tablaPuestos">
+                                    <thead><tr><th>ID</th><th>Nombre</th><th>Salario Base</th><th>Acciones</th></tr></thead>
+                                    <tbody id="tablaPuestosCuerpo"><tr><td colspan="4" style="text-align:center;">Cargando...</td></tr></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SUB-MÓDULO: ÁREAS DE LIMPIEZA -->
+                <div id="sub-areas" class="sub-modulo">
+                    <div class="cards-grid">
+                        <div class="card">
+                            <h3>Gestionar Áreas de Limpieza</h3>
+                            <div id="msgAreas" style="display:none;"></div>
+                            <form id="formArea">
+                                <input type="hidden" id="idAreaEdit" value="">
+                                <div class="form-group">
+                                    <label for="nombreArea">Nombre del Área *</label>
+                                    <input type="text" id="nombreArea" required placeholder="Ej. Cocina">
+                                </div>
+                                <div style="display:flex;gap:10px;">
+                                    <button type="submit" class="btn-submit" id="btnGuardarArea">Guardar Área</button>
+                                    <button type="button" class="btn-delete" id="btnCancelarArea" style="display:none;" onclick="cancelarEdicionArea()">Cancelar</button>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Áreas Registradas</h3>
+                                <button class="btn-refresh" onclick="cargarAreasLimpieza()">Actualizar</button>
+                            </div>
+                            <div class="table-responsive">
+                                <table id="tablaAreas">
+                                    <thead><tr><th>ID</th><th>Nombre</th><th>Acciones</th></tr></thead>
+                                    <tbody id="tablaAreasCuerpo"><tr><td colspan="3" style="text-align:center;">Cargando...</td></tr></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SUB-MÓDULO: HISTORIAL DE FACTURAS -->
+                <div id="sub-facturas" class="sub-modulo">
+                    <div class="cards-grid">
+                        <div class="card">
+                            <h3>Historial de Facturas</h3>
+                            <div id="msgFacturas" style="display:none;"></div>
+                            <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:15px;">
+                                <div class="form-group" style="margin:0;">
+                                    <label for="facturaDesde">Desde</label>
+                                    <input type="date" id="facturaDesde">
+                                </div>
+                                <div class="form-group" style="margin:0;">
+                                    <label for="facturaHasta">Hasta</label>
+                                    <input type="date" id="facturaHasta">
+                                </div>
+                                <div class="form-group" style="margin:0;">
+                                    <label for="facturaEstado">Estado</label>
+                                    <select id="facturaEstado">
+                                        <option value="">Todos</option>
+                                        <option value="Vigente">Vigente</option>
+                                        <option value="Anulada">Anulada</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" style="margin:0;">
+                                    <label for="facturaMetodo">Método de Pago</label>
+                                    <select id="facturaMetodo"><option value="">Todos</option></select>
+                                </div>
+                                <button class="btn-refresh" onclick="cargarFacturas()" style="align-self:flex-end;">Filtrar</button>
+                                <button class="btn-refresh" onclick="document.getElementById('facturaDesde').value='';document.getElementById('facturaHasta').value='';document.getElementById('facturaEstado').value='';document.getElementById('facturaMetodo').value='';cargarFacturas();" style="align-self:flex-end;">Limpiar</button>
+                            </div>
+                            <div class="table-responsive">
+                                <table id="tablaFacturas">
+                                    <thead><tr><th>N° Factura</th><th>Fecha</th><th>Cliente</th><th>Ubicación</th><th>Método</th><th>Monto</th><th>Estado / Acción</th></tr></thead>
+                                    <tbody id="tablaFacturasCuerpo"><tr><td colspan="7" style="text-align:center;">Cargando...</td></tr></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- SUB-MÓDULO: REPORTES AVANZADOS -->
+                <div id="sub-reportes" class="sub-modulo">
+                    <div class="cards-grid">
+                        <div class="card">
+                            <h3>Reporte de Ventas</h3>
+                            <div class="filter-group" style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:15px;">
+                                <div class="form-group" style="margin:0;">
+                                    <label>Desde</label>
+                                    <input type="date" id="reporte-desde">
+                                </div>
+                                <div class="form-group" style="margin:0;">
+                                    <label>Hasta</label>
+                                    <input type="date" id="reporte-hasta">
+                                </div>
+                                <div class="form-group" style="margin:0;">
+                                    <label>Cliente</label>
+                                    <select id="reporte-cliente"><option value="">Todos</option></select>
+                                </div>
+                                <div class="form-group" style="margin:0;">
+                                    <label>Producto</label>
+                                    <select id="reporte-producto"><option value="">Todos</option></select>
+                                </div>
+                                <div class="form-group" style="margin:0;">
+                                    <label>Método Pago</label>
+                                    <select id="reporte-metodo-pago"><option value="">Todos</option></select>
+                                </div>
+                                <button class="btn-submit" onclick="generarReporte()">Generar</button>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="table-responsive">
+                                <table id="tablaReportes">
+                                    <thead>
+                                        <tr><th>N° Factura</th><th>Fecha</th><th>Cliente</th><th>Ubicación</th><th>Método</th><th>Empleado</th><th>Total</th></tr>
+                                    </thead>
+                                    <tbody id="tablaReportesCuerpo"><tr><td colspan="7" style="text-align:center;">Seleccione filtros y presione Generar.</td></tr></tbody>
+                                </table>
+                            </div>
+                            <div style="text-align:right;margin-top:10px;font-size:1.2rem;font-weight:bold;">
+                                Total General: <span id="reporte-total-general" style="color:var(--success);">0.00</span> Bs.
+                            </div>
+                            <button class="btn-refresh" onclick="descargarReporteExcelAvanzado()">Excel</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="card-modelos-matematicos" class="sub-modulo">
+                    <div class="cards-grid">
+                        <div class="card">
+                            <h3>OPTIMIZACIÓN RECURSOS</h3>
+                            <p style="color:var(--text-light);margin-top:0;">Predicciones de stock y propuesta de optimización.</p>
+                            <button class="btn-refresh" onclick="cargarModelosMatematicos()">Actualizar modelos</button>
+                            <div id="modelos-result" style="margin-top:12px;">
+                                <div id="modelos-predicciones">Cargando modelos...</div>
+                                <div id="modelos-simplex" style="margin-top:8px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- SUB-MÓDULO: CIERRE DE CAJA -->
+                <div id="sub-cierre-caja" class="sub-modulo">
+                    <div class="cards-grid">
+                        <!-- Resumen calculado del día -->
+                        <div class="card">
+                            <div class="metric-cards">
+                                <div class="card" style="border-left:5px solid #2ecc71;">
+                                    <h4 style="color:var(--text-light);margin-top:0;">INGRESOS HOY (Sistema)</h4>
+                                    <h2 style="color:#27ae60;margin:5px 0;" id="cierre-total-calculado">0.00 Bs.</h2>
+                                </div>
+                                <div class="card" style="border-left:5px solid #3498db;">
+                                    <h4 style="color:var(--text-light);margin-top:0;">FACTURAS EMITIDAS</h4>
+                                    <h2 style="margin:5px 0;" id="cierre-cantidad">0</h2>
+                                </div>
+                                <div class="card" style="border-left:5px solid #f39c12;">
+                                    <h4 style="color:var(--text-light);margin-top:0;">EFECTIVO</h4>
+                                    <h2 style="margin:5px 0;" id="cierre-efectivo">0.00 Bs.</h2>
+                                </div>
+                                <div class="card" style="border-left:5px solid #9b59b6;">
+                                    <h4 style="color:var(--text-light);margin-top:0;">QR / DIGITAL</h4>
+                                    <h2 style="margin:5px 0;" id="cierre-digital">0.00 Bs.</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Formulario de cierre -->
+                        <div class="card">
+                            <h3>Ejecutar Cierre de Caja</h3>
+                            <p style="color:var(--text-light);">
+                                Cuente el dinero físico en caja e ingrese el monto real.
+                                El sistema calculará el desfase y descargará el reporte Excel del día.
+                            </p>
+                            <div class="form-group" style="max-width:300px;">
+                                <label for="cierre-monto-real">Monto Real Contado (Bs.) *</label>
+                                <input type="number" id="cierre-monto-real" step="0.01" min="0"
+                                    placeholder="Ej. 1250.00"
+                                    style="font-size:1.2rem;font-weight:bold;">
+                            </div>
+                            <button class="btn-submit" style="background:#8e44ad;max-width:280px;"
+                                    onclick="ejecutarCierreCaja()">
+                                Cerrar Caja y Descargar Reporte
+                            </button>
+                            <div id="cierre-resultado" style="display:none;margin-top:15px;
+                                padding:12px;border-radius:8px;background:var(--bg-light);font-size:1.1rem;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+            </section>
+            <!--MÓDULO DE GESTIÓN DE PEDIDOS-->
+            <section id="modulo-pedidos" class="modulo-oculto">
+                
+                <div id="sub-gestion-pedidos" class="sub-modulo activo">
+                    <div class="pos-container">
+                        <div class="card pos-ticket">
+                            <div class="card-header" style="margin-bottom: 0;">
+                                <h3>Nuevo pedido</h3>
+                            </div>
+                            
+                            <div class="pos-tabla-carrito">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Cant.</th>
+                                            <th>Producto</th>
+                                            <th>Precio</th>
+                                            <th>Subtotal</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="cuerpo-carrito">
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <div style="margin-top: 15px;">
+                                <h2 style="text-align: right; margin-bottom: 15px;">Total: <span id="pos-total-pagar">0.00</span> Bs.</h2>
+                                
+                                <div class="grid-2cols">
+                                    <div class="form-group">
+                                        <select id="pos-tipo-pedido" class="form-group" onchange="toggleReferencia()"></select>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <div id="pos-ref-group">
+                                        <div class="form-group" id="pos-mesa-group" style="display:none;">
+                                            <label for="pos-mesa">Seleccione Mesa</label>
+                                            <select id="pos-mesa" class="form-group">
+                                                <option value="">Cargando mesas...</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group" id="pos-ref-text-group">
+                                            <input type="text" id="pos-referencia" placeholder="Nombre o referencia">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="pos-direccion-group" style="display:none; margin-top:10px;">
+                                    <div class="form-group" style="display:flex; gap:10px; align-items:center;">
+                                        <input type="text" id="pos-direccion" placeholder="Dirección de entrega (Calle, número, zona)" style="flex:1;">
+                                        <button type="button" id="btn-maps" class="btn-refresh" onclick="abrirMaps()" style="display:none;">Buscar Maps</button>
+                                    </div>
+                                    <div class="form-group">
+                                        <input type="text" id="pos-gps" placeholder="Enlace GPS (se llena automáticamente)" readonly>
+                                    </div>
+                                </div>
+                                <button class="btn-submit" style="background: var(--success); height: 50px; font-size: 1.1rem;" onclick="registrarPedido()">Confirmar pedido</button>
+                            </div>
+                        </div>
+
+                        <div class="card pos-productos-container">
+                            <div id="pos-grid-productos" class="pos-grid-productos"></div>
+                        </div>
+                    </div>
+                </div>
+                <!-- SUB MODULO: CONSULTAR ESTADO PEDIDO -->
+                <div id="sub-cocina-monitor" class="sub-modulo">
+                    <div class="cards-grid">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Estado de los pedidos (Cocina)</h3>
+                                <div style="display:flex; gap:10px; align-items:center; margin-bottom:15px;">
+                                    <label for="filtro-cocina-estado">Filtrar por estado:</label>
+                                    <select id="filtro-cocina-estado" onchange="cargarMonitorCocina()">
+                                        <option value="Pendiente">Pendiente</option>
+                                        <option value="En Preparacion">En Preparación</option>
+                                        <option value="Entregado">Entregado</option>
+                                    </select>
+                                </div>
+                                <button class="btn-refresh" onclick="cargarMonitorCocina()">Actualizar Monitor</button>
+                            </div>
+                            <div class="table-responsive">
+                                <table id="tablaCocina">
+                                    <thead>
+                                        <tr><th>N° Pedido</th><th>Tipo/Ref</th><th>Detalles</th><th>Hora</th><th>Acción</th></tr>
+                                    </thead>
+                                    <tbody id="tablaCocinaCuerpo"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- SUB-MÓDULO: DELIVERY -->
+                <div id="sub-delivery" class="sub-modulo">
+                    <div class="cards-grid">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Pedidos para Delivery</h3>
+                                <button class="btn-refresh" onclick="cargarDelivery()">Actualizar</button>
+                            </div>
+                            <div style="display:flex; gap:10px; align-items:center; margin-bottom:15px;">
+                                <label for="filtro-delivery-estado">Filtrar por estado:</label>
+                                <select id="filtro-delivery-estado" onchange="cargarDelivery()">
+                                    <option value="Pendiente">Pendiente</option>
+                                    <option value="En Preparacion">En Preparación</option>
+                                    <option value="Entregado">Entregado</option>
+                                    <option value="Pagado">Pagado</option>
+                                    <option value="Cancelado">Cancelado</option>
+                                </select>
+                            </div>
+                            <div class="table-responsive">
+                                <table id="tablaDelivery">
+                                    <thead>
+                                        <tr>
+                                            <th>N° Pedido</th>
+                                            <th>Cliente</th>
+                                            <th>Dirección</th>
+                                            <th>Ubicación</th>
+                                            <th>Detalles</th>
+                                            <th>Total</th>
+                                            <th>Estado</th>        <!-- ← NUEVA COLUMNA -->
+                                            <th>Acciones</th>      <!-- ← NUEVA COLUMNA -->
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tablaDeliveryCuerpo">
+                                        <tr><td colspan="8" style="text-align:center;">Cargando...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <!-- MODULO DE GESTIÓN DE VENTAS -->
+            <section id="modulo-ventas" class="modulo-oculto">
+                <!-- SUB-MÓDULO 1: GESTIONAR VENTAS (cobros) -->
+                <div id="sub-gestionar-ventas" class="sub-modulo activo">
+                    <div class="cards-grid">
+                        <!-- Datos opcionales del cliente -->
+                        <div class="card" style="margin-bottom:0;">
+                            <h4 style="margin:0 0 10px;">Datos del Cliente (Opcional)</h4>
+                            <div class="grid-2cols">
+                                <div class="form-group" style="margin:0;">
+                                    <input type="text" id="cobro-nit" placeholder="NIT / CI del cliente">
+                                </div>
+                                <div class="form-group" style="margin:0;">
+                                    <input type="text" id="cobro-nombre" placeholder="Nombre del cliente">
+                                </div>
+                            </div>
+                            <small style="color:var(--text-light);">
+                                Ingrese NIT/CI y el nombre se autocompletará si el cliente ya está registrado.
+                            </small>
+                        </div>
+                
+                        <!-- Tabla de pedidos entregados -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Comandas Entregadas — Pendientes de Cobro</h3>
+                                <button class="btn-refresh" onclick="cargarPedidosParaCobro()">Actualizar</button>
+                            </div>
+                            <div class="table-responsive">
+                                <table id="tablaVentas">
+                                    <thead>
+                                        <tr>
+                                            <th>N° Pedido</th>
+                                            <th>Imagen</th>
+                                            <th>Tipo / Mesa</th>
+                                            <th>Detalle</th>
+                                            <th>Total (Bs.)</th>
+                                            <th>Acción</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tablaCobrosCuerpo"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                
+                        <!-- Panel de pago (oculto hasta seleccionar pedido) -->
+                        <div class="card" id="panelProcesarPago"
+                            style="display:none; border-top:4px solid var(--success);">
+                            <h3>Liquidar Pedido #<span id="txtIdPedido"></span></h3>
+                            <p style="font-size:1.2rem;margin-bottom:1rem;">
+                                Total a Pagar: <strong><span id="txtMontoTotal">0.00</span> Bs.</strong>
+                            </p>
+                            <form id="formCobro">
+                                <div class="grid-2cols">
+                                    <div class="form-group">
+                                        <label for="idMetodoPagoCobro">Método de Pago *</label>
+                                        <select id="idMetodoPagoCobro" required></select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="montoRecibido">Efectivo Recibido (Opcional)</label>
+                                        <input type="number" step="0.10" id="montoRecibido"
+                                            placeholder="Ej. 100" oninput="calcularCambio()">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <p>Cambio a devolver:
+                                        <strong id="txtCambio" style="color:var(--success);">0.00 Bs.</strong>
+                                    </p>
+                                </div>
+                                <div style="display:flex;gap:1rem;">
+                                    <button type="submit" class="btn-submit" style="background:var(--success);">
+                                        Cobrar e Imprimir Ticket
+                                    </button>
+                                    <button type="button" class="btn-delete"
+                                            style="background:#95a5a6;" onclick="cancelarCobro()">
+                                        Cancelar
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <!-- Modal Receta -->
+            <div id="modalReceta" class="modal-editar-pedido" style="display:none;">
+                <div class="modal-contenido">
+                    <div class="modal-header">
+                        <h3 id="receta-titulo">Receta</h3>
+                        <button class="btn-delete" onclick="cerrarGestorReceta()">✕ Cerrar</button>
+                    </div>
+                    <div id="msgReceta" style="display:none;"></div>
+                    <div class="modal-grid">
+                        <div class="columna-izquierda">
+                            <div class="carrito-container">
+                                <h4>Ingredientes de la Receta</h4>
+                                <div class="table-responsive">
+                                    <table id="tablaReceta">
+                                        <thead><tr><th>Ingrediente</th><th>Cantidad</th><th>Costo</th><th>Acción</th></tr></thead>
+                                        <tbody id="tablaRecetaCuerpo"><tr><td colspan="4" style="text-align:center;">Cargando...</td></tr></tbody>
+                                    </table>
+                                </div>
+                                <div id="receta-costo" style="margin-top:10px;display:flex;gap:15px;flex-wrap:wrap;background:var(--bg-light);padding:10px;border-radius:8px;"></div>
+                            </div>
+                        </div>
+                        <div class="columna-derecha">
+                            <div class="menu-container">
+                                <h4>Agregar Ingrediente</h4>
+                                <div class="form-group">
+                                    <label for="receta-ingrediente">Ingrediente</label>
+                                    <select id="receta-ingrediente"><option value="">Cargando...</option></select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="receta-cantidad">Cantidad Requerida</label>
+                                    <input type="number" id="receta-cantidad" step="0.01" min="0.01" placeholder="Ej. 0.200">
+                                </div>
+                                <button class="btn-submit" onclick="agregarIngredienteAReceta()">Agregar a Receta</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="acciones-modal">
+                        <button class="btn-delete" onclick="cerrarGestorReceta()">Cerrar</button>
+                    </div>
+                </div>
+            </div>
+            <!-- Modal Historial de Precios -->
+            <div id="modalHistorialPrecios" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center;">
+                <div class="modal-contenido">
+                    <div class="modal-header">
+                        <h3>Historial de Precios</h3>
+                        <button class="btn-delete" onclick="cerrarHistorialPrecios()">✕ Cerrar</button>
+                    </div>
+                    <div class="modal-grid">
+                        <div class="table-responsive">
+                            <table>
+                                <thead><tr><th>Precio (Bs.)</th><th>Desde</th><th>Hasta</th></tr></thead>
+                                <tbody id="tablaHistorialPreciosCuerpo"><tr><td colspan="3" style="text-align:center;">Cargando...</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>                 
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- PRIMERO: Interceptor de fetch -->
+    <script src="../js/fetchInterceptor.js"></script>
+    <script src="../js/navUnificada.js"></script>
+    <script src="../js/gestionIngredientes.js"></script>
+    <script src="../js/gestionCatalogos.js"></script>
+    <script src="../js/gestionElRecuerdo.js"></script>
+    <script src="../js/gestionUsuarios.js"></script>
+    <script src="../js/gestionMesas.js"></script>
+    <script src="../js/gestionTurnos.js"></script>
+    <script src="../js/gestionPedidos.js"></script>
+    <script src="../js/gestionVentas.js"></script>
+    <script src="../js/gestionProveedores.js"></script>
+    <script src="../js/gestionReportes.js"></script>
+</body>
+</html>

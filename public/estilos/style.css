@@ -1,0 +1,23 @@
+/* Variables de diseño */
+:root {
+    --primary: #2c3e50;
+    --accent: #e67e22;
+    --light: #ecf0f1;
+}
+
+body { 
+    font-family: 'Segoe UI', sans-serif; 
+    background: var(--light); 
+    /* padding: 0px;  */
+}
+table {
+    width: 100%; 
+    border-collapse: collapse; 
+    margin-top: 20px; 
+    background: white; 
+}
+th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+th { background-color: var(--primary); color: white; }
+button { background: var(--accent); color: white; border: none; padding: 10px 15px; cursor: pointer; border-radius: 4px; }
+button:hover { opacity: 0.9; }
+fieldset { border: 2px solid var(--primary); padding: 20px; border-radius: 8px; }

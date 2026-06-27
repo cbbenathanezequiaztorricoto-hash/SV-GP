@@ -1,0 +1,13 @@
+# El .gitignore es para evitar que se envíe contraseñas en archivos.env
+# Dependencias
+node_modules/
+
+# Variables de entorno (¡Contraseñas y llaves secretas!)
+.env
+
+# Archivos subidos por usuarios (opcional, para no llenar tu Git de fotos de prueba)
+public/uploads/menu/*.jpg
+
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db
