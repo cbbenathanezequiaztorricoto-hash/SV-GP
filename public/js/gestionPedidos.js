@@ -293,7 +293,6 @@ function filtrarPedidoModalCategoria(boton, idCat) {
 // ============================================================
 // TOGGLE REFERENCIA Y MAPS
 // ============================================================
-
 function toggleReferencia() {
     const sel = document.getElementById('pos-tipo-pedido');
     const refText = document.getElementById('pos-referencia');
@@ -314,7 +313,7 @@ function toggleReferencia() {
 
     if (tipo === '1') { // Mesa
         mesaGroup.style.display = 'block';
-        cargarMesasSelect();
+        cargarMesasSelect(); // solo llena el select del POS (id 'pos-mesa')
     } else if (tipo === '2') { // Para Llevar
         refTextGroup.style.display = 'block';
         refText.placeholder = 'Nombre de quien retira';
@@ -326,8 +325,8 @@ function toggleReferencia() {
     }
 }
 
-async function cargarMesasSelect() {
-    const select = document.getElementById('pos-mesa');
+async function cargarMesasSelect(selectId = 'pos-mesa') {
+    const select = document.getElementById(selectId);
     if (!select) return;
     try {
         const res = await fetch('/api/pedidos/mesas');
@@ -338,6 +337,7 @@ async function cargarMesasSelect() {
         });
     } catch (error) {
         console.error('Error cargando mesas:', error);
+        select.innerHTML = '<option value="">Error al cargar mesas</option>';
     }
 }
 
@@ -621,7 +621,7 @@ function mostrarModalEditarPedido(pedido) {
             <div class="modal-contenido">
                 <div class="modal-header">
                     <h3>Editar Pedido #${pedido.idPedido}</h3>
-                    <button type="button" class="btn-delete" onclick="cerrarModalEditarPedido()">Cerrar</button>
+                    <button type="button" class="btn-delete" onclick="cerrarModalEditarPedido()">✕</button>
                 </div>
                 <div class="modal-grid">
                     <div class="columna-izquierda">
@@ -631,7 +631,9 @@ function mostrarModalEditarPedido(pedido) {
                         </div>
                         <div class="form-group" id="editar-mesa-group">
                             <label for="editar-numero-mesa">Número de Mesa</label>
-                            <input type="text" id="editar-numero-mesa" placeholder="Ej. 5">
+                            <select id="editar-numero-mesa" class="form-group">
+                                <option value="">Cargando mesas...</option>
+                            </select>
                         </div>
                         <div class="form-group" id="editar-llevar-group" style="display:none;">
                             <label for="editar-nombre-llevar">Nombre / Referencia</label>
@@ -684,6 +686,9 @@ function mostrarModalEditarPedido(pedido) {
     `;
     selectTipo.value = pedido.idTipoPedido || '1';
 
+    // Cargar mesas en el select del modal
+    cargarMesasSelect('editar-numero-mesa');
+
     const mesaGrp = modal.querySelector('#editar-mesa-group');
     const llevarNameGrp = modal.querySelector('#editar-llevar-group');
     const llevarRefGrp = modal.querySelector('#editar-referencia-llevar-group');
@@ -696,7 +701,10 @@ function mostrarModalEditarPedido(pedido) {
     const direccionInput = modal.querySelector('#editar-direccion');
     const gpsInput = modal.querySelector('#editar-gps');
 
-    numeroMesaInput.value = pedido.numeroMesa || '';
+    // Asignar valores actuales (si el select ya está cargado, se seleccionará el valor correspondiente)
+    if (numeroMesaInput) {
+        numeroMesaInput.value = pedido.numeroMesa || '';
+    }
     nombreLlevarInput.value = pedido.nombreLlevar || pedido.referenciaLlevar || '';
     referenciaLlevarInput.value = pedido.referenciaLlevar || '';
     if (direccionInput) direccionInput.value = pedido.direccion_entrega || '';

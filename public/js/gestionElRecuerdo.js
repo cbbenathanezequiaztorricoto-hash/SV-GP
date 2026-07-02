@@ -284,6 +284,7 @@ const SUB_MODULOS = [
     { id: 'sub-areas', label: 'Áreas' },
     { id: 'sub-facturas', label: 'Facturas' },
     { id: 'sub-reportes', label: 'Reportes' },
+    { id: 'sub-pert', label: 'Modelo Pert' },
     { id: 'sub-cierre-caja', label: 'Cierre Caja' },
     { id: 'sub-gestion-pedidos', label: 'Gestionar Pedidos' },
     { id: 'sub-cocina-monitor', label: 'Monitor Cocina' },

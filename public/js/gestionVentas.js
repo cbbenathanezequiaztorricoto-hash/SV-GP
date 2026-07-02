@@ -11,11 +11,11 @@ function inicializarModuloVentas() {
     cargarMetodosPagoVentas();
     cargarModelosMatematicos();
 
-    const form = document.getElementById('formCobro');
-    if (form && !form.dataset.handler) {
-        form.addEventListener('submit', confirmarPagoEImprimir);
-        form.dataset.handler = 'true';
-    }
+    // const form = document.getElementById('formCobro');
+    // if (form && !form.dataset.handler) {
+    //     form.addEventListener('submit', confirmarPagoEImprimir);
+    //     form.dataset.handler = 'true';
+    // }
 
     const nitInput = document.getElementById('cobro-nit');
     if (nitInput && !nitInput.dataset.autofillHandler) {
@@ -30,7 +30,6 @@ function inicializarModuloVentas() {
 
 function inicializarCierreCaja() {
     //console.log('🔄 inicializarCierreCaja ejecutándose');
-
     cargarResumenCierre();
 }
 
@@ -453,5 +452,162 @@ async function cargarModelosMatematicos() {
     } catch (err) {
         console.error('cargarModelosMatematicos:', err);
         divPredicciones.innerHTML = '<p style="color:red;">Error al calcular los modelos matemáticos.</p>';
+    }
+}
+// ============================================================
+// MODAL DE PAGO (creado dinámicamente)
+// ============================================================
+function abrirPanelPago(idPedido, total) {
+    mostrarModalPago(idPedido, total);
+}
+function mostrarModalPago(idPedido, total) {
+    // Verificar si ya existe un modal abierto y cerrarlo
+    cerrarModalPago();
+
+    // Crear el modal
+    const modal = document.createElement('div');
+    modal.id = 'modal-pago';
+    modal.className = 'modal-editar-pedido'; // Reutiliza el estilo del modal de pedidos
+    modal.innerHTML = `
+        <div class="modal-contenido" style="max-width:520px;">
+            <div class="modal-header">
+                <h3>Liquidar Pedido #${idPedido}</h3>
+                <button type="button" class="btn-delete" onclick="cerrarModalPago()">✕</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size:1.3rem; margin:0 0 1.5rem 0;">
+                    Total a Pagar: <strong style="color:var(--success);">${total.toFixed(2)} Bs.</strong>
+                </p>
+                <form id="formCobroModal">
+                    <div class="grid-2cols">
+                        <div class="form-group">
+                            <label for="idMetodoPagoCobroModal">Método de Pago *</label>
+                            <select id="idMetodoPagoCobroModal" required></select>
+                        </div>
+                        <div class="form-group">
+                            <label for="montoRecibidoModal">Efectivo Recibido (Opcional)</label>
+                            <input type="number" step="0.10" id="montoRecibidoModal"
+                                placeholder="Ej. 100" oninput="calcularCambioModal()">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <p>Cambio a devolver:
+                            <strong id="txtCambioModal" style="color:var(--success);">0.00 Bs.</strong>
+                        </p>
+                    </div>
+                    <div style="display:flex; gap:1rem; margin-top:1rem;">
+                        <button type="submit" class="btn-submit" style="background:var(--success); flex:1;">
+                            Cobrar e Imprimir Ticket
+                        </button>
+                        <button type="button" class="btn-delete" style="background:#95a5a6;" onclick="cerrarModalPago()">
+                            Cancelar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+
+    // Cargar métodos de pago en el select del modal
+    cargarMetodosPagoModal();
+
+    // Asignar evento al formulario
+    const form = document.getElementById('formCobroModal');
+    if (form) {
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            confirmarPagoEImprimirModal(idPedido);
+        });
+    }
+
+    // Guardar referencia al pedido actual
+    modal.dataset.idPedido = idPedido;
+    modal.dataset.total = total;
+
+    // Mostrar modal
+    modal.style.display = 'flex';
+}
+
+function cerrarModalPago() {
+    const modal = document.getElementById('modal-pago');
+    if (modal) {
+        modal.remove();
+    }
+    // Resetear variables globales si existen
+    idPedidoSeleccionadoVenta = null;
+    totalPedidoSeleccionadoVenta = 0;
+}
+
+async function cargarMetodosPagoModal() {
+    const sel = document.getElementById('idMetodoPagoCobroModal');
+    if (!sel) return;
+    try {
+        const res = await fetch('/api/ventas/metodos-pago');
+        const metodos = await res.json();
+        sel.innerHTML = metodos.map(m =>
+            `<option value="${m.idMetodoPago}" data-qr="${m.qr_url || ''}">${m.nombreMetodo}</option>`
+        ).join('');
+    } catch (err) {
+        console.error("Error cargando métodos de pago", err);
+    }
+}
+
+function calcularCambioModal() {
+    const modal = document.getElementById('modal-pago');
+    if (!modal) return;
+    const total = parseFloat(modal.dataset.total) || 0;
+    const recibido = parseFloat(document.getElementById('montoRecibidoModal').value) || 0;
+    const cambio = recibido - total;
+    const txtCambio = document.getElementById('txtCambioModal');
+    if (!txtCambio) return;
+    if (cambio >= 0) {
+        txtCambio.innerText = `${cambio.toFixed(2)} Bs.`;
+        txtCambio.style.color = 'var(--success)';
+    } else {
+        txtCambio.innerText = '0.00 Bs.';
+        txtCambio.style.color = 'var(--text-light)';
+    }
+}
+
+async function confirmarPagoEImprimirModal(idPedido) {
+    const selMetodo = document.getElementById('idMetodoPagoCobroModal');
+    const idMetodoPago = selMetodo.value;
+    const opt = selMetodo.options[selMetodo.selectedIndex];
+    const qrUrl = opt ? opt.getAttribute('data-qr') : '';
+    const nitCi = (document.getElementById('cobro-nit')?.value || '').trim();
+    const nombreCliente = (document.getElementById('cobro-nombre')?.value || '').trim();
+
+    // Obtener total del modal
+    const modal = document.getElementById('modal-pago');
+    const total = parseFloat(modal?.dataset.total) || 0;
+
+    try {
+        const response = await fetch(`/api/ventas/procesar-cobro/${idPedido}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ idMetodoPago, nitCi, nombreCliente })
+        });
+        const data = await response.json();
+
+        if (response.ok) {
+            // Mostrar QR si aplica
+            if (qrUrl) mostrarModalQRVentas(qrUrl, opt.text);
+
+            imprimirTicket(idPedido, data.nroFactura, total, nombreCliente || 'Cliente', opt.text);
+
+            // Limpiar campos de cliente
+            const inputNit = document.getElementById('cobro-nit');
+            const inputNombre = document.getElementById('cobro-nombre');
+            if (inputNit) inputNit.value = '';
+            if (inputNombre) inputNombre.value = '';
+
+            cerrarModalPago();
+            cargarPedidosParaCobro();
+        } else {
+            alert('❌ ' + (data.error || 'Error al cobrar'));
+        }
+    } catch {
+        alert('Error de red procesando la venta.');
     }
 }

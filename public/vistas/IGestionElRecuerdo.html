@@ -900,7 +900,93 @@
                         </div>
                     </div>
                 </div>
-                
+                <!-- SUB-MÓDULO: PERT -->
+                <div id="sub-pert" class="sub-modulo">
+                    <div class="cards-grid">
+                        <div class="card">
+                            <div class="section-header">
+                                <h2>Dashboard Analítico PERT-CPM</h2>
+                                <p class="section-description">Optimización científica de tiempos de cocina y cálculo probabilístico de riesgos de retraso.</p>
+                            </div>
+                            <div class="card-header">
+                                <h3>Formulario Estadístico de Tiempos Alternativos</h3>
+                            </div>
+                            
+                            <form id="form-pert-analisis" onsubmit="procesarAnalisisPert(event)">
+                                <div class="form-group-inline" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                                    <div>
+                                        <label for="pert-plato-select">Plato a Evaluar (Menú Activo):</label>
+                                        <select id="pert-plato-select" class="form-control" required>
+                                            </select>
+                                    </div>
+                                    <div>
+                                        <label for="pert-cantidad">Cantidad / Volumen del Pedido:</label>
+                                        <input type="number" id="pert-cantidad" value="1" min="1" class="form-control" required>
+                                    </div>
+                                </div>
+
+                                <div class="form-group" style="margin-bottom: 20px;">
+                                    <label for="pert-compromiso">Meta de Entrega Institucional (Tiempo de Compromiso en Minutos):</label>
+                                    <input type="number" id="pert-compromiso" value="780" min="1" class="form-control" required>
+                                    <small style="color: var(--text-light)">Nota: 13 horas equivalen a 780 minutos.</small>
+                                </div>
+
+                                <h4 style="margin-top: 15px; margin-bottom: 10px; color: var(--primary);">Variables de Estimación de Tareas (en Minutos)</h4>
+                                
+                                <div class="table-responsive">
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th>Fase / Actividad Operativa</th>
+                                                <th>Optimista (a)</th>
+                                                <th>Más Probable (m)</th>
+                                                <th>Pesimista (b)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td><strong>1. Compra de Ingredientes (Actividad A)</strong></td>
+                                                <td><input type="number" id="time-aA" value="30" min="0" class="form-control" required></td>
+                                                <td><input type="number" id="time-mA" value="45" min="0" class="form-control" required></td>
+                                                <td><input type="number" id="time-bA" value="90" min="0" class="form-control" required></td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>2. Preparar y Picar (Actividad B)</strong></td>
+                                                <td><input type="number" id="time-aB" value="20" min="0" class="form-control" required></td>
+                                                <td><input type="number" id="time-mB" value="30" min="0" class="form-control" required></td>
+                                                <td><input type="number" id="time-bB" value="60" min="0" class="form-control" required></td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>3. Precalentar Horno (Actividad C)</strong></td>
+                                                <td><input type="number" id="time-aC" value="10" min="0" class="form-control" required></td>
+                                                <td><input type="number" id="time-mC" value="15" min="0" class="form-control" required></td>
+                                                <td><input type="number" id="time-bC" value="20" min="0" class="form-control" required></td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>4. Horneado Completo (Actividad D)</strong></td>
+                                                <td><input type="number" id="time-aD" value="45" min="0" class="form-control" required></td>
+                                                <td><input type="number" id="time-mD" value="60" min="0" class="form-control" required></td>
+                                                <td><input type="number" id="time-bD" value="120" min="0" class="form-control" required></td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>5. Empaque y Salón (Actividad E)</strong></td>
+                                                <td><input type="number" id="time-aE" value="10" min="0" class="form-control" required></td>
+                                                <td><input type="number" id="time-mE" value="15" min="0" class="form-control" required></td>
+                                                <td><input type="number" id="time-bE" value="30" min="0" class="form-control" required></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div style="margin-top: 20px; text-align: right;">
+                                    <button type="submit" class="btn-submit">Ejecutar Simulación Matemática 📊</button>
+                                </div>
+                            </form>
+                        </div>
+                        <div id="pert-resultados-box" class="card" style="display: none; margin-top: 25px; border-top: 3px solid var(--primary);">
+                        </div>
+                    </div>
+                </div>
             </section>
             <!--MÓDULO DE GESTIÓN DE PEDIDOS-->
             <section id="modulo-pedidos" class="modulo-oculto">
@@ -1123,7 +1209,7 @@
                 <div class="modal-contenido">
                     <div class="modal-header">
                         <h3 id="receta-titulo">Receta</h3>
-                        <button class="btn-delete" onclick="cerrarGestorReceta()">✕ Cerrar</button>
+                        <button class="btn-delete" onclick="cerrarGestorReceta()">✕</button>
                     </div>
                     <div id="msgReceta" style="display:none;"></div>
                     <div class="modal-grid">
@@ -1136,7 +1222,7 @@
                                         <tbody id="tablaRecetaCuerpo"><tr><td colspan="4" style="text-align:center;">Cargando...</td></tr></tbody>
                                     </table>
                                 </div>
-                                <div id="receta-costo" style="margin-top:10px;display:flex;gap:15px;flex-wrap:wrap;background:var(--bg-light);padding:10px;border-radius:8px;"></div>
+                                <div id="receta-costo" style="margin-top:10px;display:flex;gap:15px;flex-wrap:wrap;background:var(--bg);padding:10px;border-radius:8px;"></div>
                             </div>
                         </div>
                         <div class="columna-derecha">
@@ -1164,7 +1250,7 @@
                 <div class="modal-contenido">
                     <div class="modal-header">
                         <h3>Historial de Precios</h3>
-                        <button class="btn-delete" onclick="cerrarHistorialPrecios()">✕ Cerrar</button>
+                        <button class="btn-delete" onclick="cerrarHistorialPrecios()">✕</button>
                     </div>
                     <div class="modal-grid">
                         <div class="table-responsive">
@@ -1192,5 +1278,6 @@
     <script src="../js/gestionVentas.js"></script>
     <script src="../js/gestionProveedores.js"></script>
     <script src="../js/gestionReportes.js"></script>
+    <script src="../js/gestionPert.js"></script>
 </body>
 </html>

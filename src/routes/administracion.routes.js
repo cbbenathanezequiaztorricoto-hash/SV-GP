@@ -112,4 +112,7 @@ router.get('/reportes/clientes',                                 moduloAdministr
 router.get('/reportes/productos',                                moduloAdministracion.obtenerReporteProductos);
 router.get('/reportes/excel-avanzado',                           moduloAdministracion.descargarReporteExcelAvanzado);
 
+// === MÓDULO INVESTIGACIÓN OPERATIVA (PERT-CPM) ===
+// Ruta dinámica para procesar la matriz analítica de tiempos Gauss-PERT
+router.post('/pert-cpm/calcular', verificarSesion, moduloAdministracion.calcularPertCPM);
 module.exports = router;

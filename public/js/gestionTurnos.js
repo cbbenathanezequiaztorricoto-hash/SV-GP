@@ -86,7 +86,8 @@ async function cargarTurnos() {
                     <td>${spanEstado}</td>
                     <td>
                         <button class="btn-submit" onclick="prepararEdicionTurno(${t.idTurno}, ${t.idEmpleado}, ${t.idArea}, '${t.diaSemana}', '${t.horaInicio}', '${t.horaFin}', '${t.observaciones || ''}')">Editar</button>
-                        <button class="btn-small btn-delete" onclick="eliminarTurno(${t.idTurno})">Eliminar</button>
+                        ${!t.completado ? `<button class="btn-submit" style="background:var(--success);" onclick="completarTurno(${t.idTurno})">Completar</button>` : ''}
+                        <button class="btn-delete" onclick="eliminarTurno(${t.idTurno})">Eliminar</button>
                     </td>
                 </tr>
             `;
@@ -98,7 +99,7 @@ async function cargarTurnos() {
 }
 
 // ============================================================
-// GUARDAR TURNO
+// CRUD
 // ============================================================
 async function guardarTurno(e) {
     e.preventDefault();
@@ -138,10 +139,6 @@ async function guardarTurno(e) {
         mostrarMensaje(error.message, 'error');
     }
 }
-
-// ============================================================
-// PREPARAR EDICIÓN
-// ============================================================
 function prepararEdicionTurno(idTurno, idEmpleado, idArea, diaSemana, horaInicio, horaFin, observaciones) {
     editandoTurno = true;
     document.getElementById('idTurno').value = idTurno;
@@ -156,10 +153,6 @@ function prepararEdicionTurno(idTurno, idEmpleado, idArea, diaSemana, horaInicio
     document.getElementById('btnGuardarTurno').innerText = 'Actualizar Cambios';
     document.getElementById('btnCancelarEdicion').style.display = 'block';
 }
-
-// ============================================================
-// CANCELAR EDICIÓN
-// ============================================================
 function cancelarEdicion() {
     editandoTurno = false;
     document.getElementById('formTurno').reset();
@@ -168,10 +161,6 @@ function cancelarEdicion() {
     document.getElementById('btnGuardarTurno').innerText = 'Guardar Turno';
     document.getElementById('btnCancelarEdicion').style.display = 'none';
 }
-
-// ============================================================
-// ELIMINAR TURNO
-// ============================================================
 async function eliminarTurno(id) {
     if (!confirm('¿Está seguro de eliminar este turno?')) return;
     try {
@@ -186,7 +175,25 @@ async function eliminarTurno(id) {
         mostrarMensaje(error.message, 'error');
     }
 }
-
+async function completarTurno(idTurno) {
+    if (!confirm('¿Marcar este turno como completado?')) return;
+    try {
+        const res = await fetch(`/api/admin/turnos-limpieza/${idTurno}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ completado: 1 })
+        });
+        const data = await res.json();
+        if (res.ok && data.exito) {
+            cargarTurnos();
+        } else {
+            alert('Error: ' + (data.error || 'No se pudo completar.'));
+        }
+    } catch (error) {
+        console.error(error);
+        alert('Error de red.');
+    }
+}
 // ============================================================
 // MOSTRAR MENSAJE
 // ============================================================

@@ -299,18 +299,18 @@ button {
 
 .btn-submit {
   background: var(--primary);
-  color: white;
+  color: var(--text);
   width: 100%;
 }
 
 .btn-add {
   background: var(--success);
-  color: white;
+  color: var(--text);
 }
 
 .btn-delete {
   background: var(--danger);
-  color: white;
+  color: var(--text);
   padding: 0.5rem 1rem;
 }
 

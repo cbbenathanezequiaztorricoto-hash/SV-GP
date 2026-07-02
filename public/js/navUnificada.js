@@ -47,6 +47,7 @@ const configNav = {
         { id: 'sub-facturas',      label: 'Facturas' },
         { id: 'sub-reportes',      label: 'Reportes' },
         { id: 'card-modelos-matematicos', label: 'Optimización' },
+        { id: 'sub-pert',          label: 'Análisis PERT-CPM' }, // 🌟 AGREGAR ESTA LÍNEA
         { id: 'sub-cierre-caja',   label: 'Cierre caja' }
         
     ],
@@ -89,7 +90,7 @@ const onEntrarSubModulo = {
     'sub-areas':             () => { if (typeof cargarAreasLimpieza === 'function') cargarAreasLimpieza(); },
     'sub-facturas':          () => { if (typeof inicializarHistorialFacturas === 'function') inicializarHistorialFacturas(); },
     'sub-gestion-pedidos':   () => { if (typeof inicializarModuloPOS   === 'function') inicializarModuloPOS(); },
-    'sub-delivery': () => {
+    'sub-delivery':          () => {
         if (typeof cargarDelivery === 'function') cargarDelivery();
     },
     'sub-cocina-monitor':    () => { if (typeof cargarMonitorCocina    === 'function') cargarMonitorCocina(); },
@@ -105,7 +106,13 @@ const onEntrarSubModulo = {
     'sub-reportes': () => {
         if (typeof cargarReportes === 'function') cargarReportes();
     },
-    'card-modelos-matematicos':  () => { if (typeof cargarModelosMatematicos  === 'function') cargarModelosMatematicos(); }
+    'sub-pert': () => {
+        if (typeof cargarPlatosPert === 'function') cargarPlatosPert();
+        if (typeof inicializarModuloPert === 'function') inicializarModuloPert();
+    },
+    'card-modelos-matematicos':  () => {
+        if (typeof cargarModelosMatematicos  === 'function') cargarModelosMatematicos(); 
+    }
 };
 
 // ============================================================

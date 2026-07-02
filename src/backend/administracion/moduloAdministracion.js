@@ -494,15 +494,39 @@ const moduloAdministracion = {
     },
     actualizarTurnoLimpieza: async (req, res) => {
         const { idTurno } = req.params;
-        const { idEmpleado, idArea, diaSemana, horaInicio, horaFin, observaciones } = req.body;
+        const { idEmpleado, idArea, diaSemana, horaInicio, horaFin, observaciones, completado } = req.body;
+
+        // Construir query dinámicamente
+        let query = 'UPDATE TurnoLimpieza SET ';
+        const params = [];
+        const fields = [];
+
+        if (idEmpleado !== undefined) { fields.push('idEmpleado = ?'); params.push(idEmpleado); }
+        if (idArea !== undefined) { fields.push('idArea = ?'); params.push(idArea); }
+        if (diaSemana !== undefined) { fields.push('diaSemana = ?'); params.push(diaSemana); }
+        if (horaInicio !== undefined) { fields.push('horaInicio = ?'); params.push(horaInicio); }
+        if (horaFin !== undefined) { fields.push('horaFin = ?'); params.push(horaFin); }
+        if (observaciones !== undefined) { fields.push('observaciones = ?'); params.push(observaciones); }
+        if (completado !== undefined) { fields.push('completado = ?'); params.push(completado); }
+
+        if (fields.length === 0) {
+            return res.status(400).json({ exito: false, error: "No se proporcionaron campos para actualizar." });
+        }
+
+        query += fields.join(', ') + ' WHERE idTurno = ?';
+        params.push(idTurno);
+
         try {
-            await db.query(
-                'UPDATE TurnoLimpieza SET idEmpleado=?, idArea=?, diaSemana=?, horaInicio=?, horaFin=?, observaciones=? WHERE idTurno=?',
-                [idEmpleado, idArea, diaSemana, horaInicio, horaFin, observaciones || null, idTurno]
-            );
-            res.json({ exito: true, mensaje: "Turno actualizado" });
-        } catch (error) { res.status(400).json({ error: "Error al actualizar turno" }); }
-    },
+            const [result] = await db.query(query, params);
+            if (result.affectedRows === 0) {
+                return res.status(404).json({ exito: false, error: "Turno no encontrado." });
+            }
+            res.json({ exito: true, mensaje: "Turno actualizado correctamente." });
+        } catch (error) {
+            console.error("Error actualizarTurnoLimpieza:", error);
+            res.status(500).json({ exito: false, error: "Error al actualizar el turno." });
+        }
+    },    
     eliminarTurnoLimpieza: async (req, res) => {
         try {
             await db.query('DELETE FROM TurnoLimpieza WHERE idTurno = ?', [req.params.idTurno]);
@@ -1392,32 +1416,127 @@ const moduloAdministracion = {
         }
     },
     cambiarEstadoUsuario: async (req, res) => {
-    const { idEmpleado } = req.params;
-    const { estado } = req.body;
+        const { idEmpleado } = req.params;
+        const { estado } = req.body;
 
-    if (!estado) {
-        return res.status(400).json({ exito: false, error: "El estado es obligatorio." });
-    }
-
-    // Validar que el estado sea válido
-    const estadosValidos = ['Activo', 'Inactivo', 'Licencia'];
-    if (!estadosValidos.includes(estado)) {
-        return res.status(400).json({ exito: false, error: "Estado no válido." });
-    }
-
-    try {
-        const [result] = await db.query(
-            "UPDATE Empleado SET estado = ? WHERE idEmpleado = ?",
-            [estado, idEmpleado]
-        );
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ exito: false, error: "Empleado no encontrado." });
+        if (!estado) {
+            return res.status(400).json({ exito: false, error: "El estado es obligatorio." });
         }
-        res.json({ exito: true, mensaje: `Estado actualizado a ${estado}.` });
-    } catch (error) {
-        console.error("Error cambiarEstadoUsuario:", error);
-        res.status(500).json({ exito: false, error: "Error al cambiar el estado." });
+
+        // Validar que el estado sea válido
+        const estadosValidos = ['Activo', 'Inactivo', 'Licencia'];
+        if (!estadosValidos.includes(estado)) {
+            return res.status(400).json({ exito: false, error: "Estado no válido." });
+        }
+
+        try {
+            const [result] = await db.query(
+                "UPDATE Empleado SET estado = ? WHERE idEmpleado = ?",
+                [estado, idEmpleado]
+            );
+            if (result.affectedRows === 0) {
+                return res.status(404).json({ exito: false, error: "Empleado no encontrado." });
+            }
+            res.json({ exito: true, mensaje: `Estado actualizado a ${estado}.` });
+        } catch (error) {
+            console.error("Error cambiarEstadoUsuario:", error);
+            res.status(500).json({ exito: false, error: "Error al cambiar el estado." });
+        }
+    },
+    // Casos de Uso Avanzados - Investigación Operativa para Ingeniería de Sistemas
+    calcularPertCPM: async (req, res) => {
+        try {
+            const { cantidadPlatos, tiempoCompromisoMinutos, tareas } = req.body;
+
+            // Validación dinámica de parámetros entrantes
+            if (!cantidadPlatos || !tiempoCompromisoMinutos || !tareas) {
+                return res.status(400).json({ exito: false, error: "Faltan parámetros y métricas de tiempo obligatorias." });
+            }
+
+            const { A, B, C, D, E } = tareas;
+
+            // 1. FÓRMULA MATEMÁTICA INTERNA PERT: Tiempos Esperados promedio (te)
+            const teA = (parseFloat(A.a) + 4 * parseFloat(A.m) + parseFloat(A.b)) / 6.0;
+            const teB = (parseFloat(B.a) + 4 * parseFloat(B.m) + parseFloat(B.b)) / 6.0;
+            const teC = (parseFloat(C.a) + 4 * parseFloat(C.m) + parseFloat(C.b)) / 6.0;
+            const teD = (parseFloat(D.a) + 4 * parseFloat(D.m) + parseFloat(D.b)) / 6.0;
+            const teE = (parseFloat(E.a) + 4 * parseFloat(E.m) + parseFloat(E.b)) / 6.0;
+
+            // 2. CÁLCULO DE VARIANZAS (v) individuales de las actividades
+            const vA = Math.pow((parseFloat(A.b) - parseFloat(A.a)) / 6.0, 2);
+            const vB = Math.pow((parseFloat(B.b) - parseFloat(B.a)) / 6.0, 2);
+            const vC = Math.pow((parseFloat(C.b) - parseFloat(C.a)) / 6.0, 2);
+            const vD = Math.pow((parseFloat(D.b) - parseFloat(D.a)) / 6.0, 2);
+            const vE = Math.pow((parseFloat(E.b) - parseFloat(E.a)) / 6.0, 2);
+
+            // 3. RECORRIDO DE RED RED CPM (Algoritmo de Pasos hacia adelante para determinar Holguras y Ruta Crítica)
+            const efA = teA;
+            const efB = efA + teB;
+            const efC = teC;
+
+            const esD = Math.max(efB, efC); // Intersección convergente
+            const efD = esD + teD;
+            const efE = efD + teE;
+
+            // El tiempo de la última actividad define la duración total de la Red Crítica
+            const tiempoTotalMinutos = efE; 
+
+            // Sumatoria de las varianzas asociadas estrictamente a la Ruta Crítica (A, B, D, E)
+            let varianzaTotal = vA + vB + vD + vE;
+            if (varianzaTotal <= 0) varianzaTotal = 0.1; // Control matemático de indeterminación por división entre cero
+            const desviacionEstandar = Math.sqrt(varianzaTotal);
+
+            // Conversión a formato de control cronológico
+            const horas = Math.floor(tiempoTotalMinutos / 60);
+            const minutosRestantes = Math.round(tiempoTotalMinutos % 60);
+
+            // 4. MODELADO ESTADÍSTICO DE DISTRIBUCIÓN NORMAL (Curva de Gauss)
+            const z = (parseFloat(tiempoCompromisoMinutos) - tiempoTotalMinutos) / desviacionEstandar;
+
+            // Implementación numérica de la función aproximada de error de Gauss (erf) de alta precisión (Handbook of Mathematical Functions)
+            const calcularErf = (x) => {
+                const sign = x < 0 ? -1 : 1;
+                const absX = Math.abs(x);
+                const a1 = 0.254829592; const a2 = -0.284496736; const a3 = 1.421413741;
+                const a4 = -1.453152027; const a5 = 1.061405429; const p = 0.3275911;
+                const t = 1.0 / (1.0 + p * absX);
+                const y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-absX * absX);
+                return sign * y;
+            };
+
+            let probabilidadExito = 0.5 * (1.0 + calcularErf(z / Math.sqrt(2.0))) * 100.0;
+            
+            // Acotación de límites estadísticos reales
+            if (probabilidadExito > 100.0) probabilidadExito = 100.0;
+            if (probabilidadExito < 0.0) probabilidadExito = 0.0;
+
+            const porcentajeErrorRiesgo = 100.0 - probabilidadExito;
+
+            // Respuesta enriquecida para el renderizado dinámico del dashboard frontend
+            return res.json({
+                exito: true,
+                datos: {
+                    cantidadPlatos: parseInt(cantidadPlatos),
+                    tiempoTotalMinutos: parseFloat(tiempoTotalMinutos.toFixed(2)),
+                    tiempoCompromisoMinutos: parseFloat(tiempoCompromisoMinutos),
+                    horas,
+                    minutosRestantes,
+                    probabilidadExito: parseFloat(probabilidadExito.toFixed(2)),
+                    porcentajeErrorRiesgo: parseFloat(porcentajeErrorRiesgo.toFixed(2)),
+                    desviacionEstandar: parseFloat(desviacionEstandar.toFixed(3)),
+                    rutaCritica: ['Actividad A', 'Actividad B', 'Actividad D', 'Actividad E'],
+                    tiemposEsperados: {
+                        A: parseFloat(teA.toFixed(2)),
+                        B: parseFloat(teB.toFixed(2)),
+                        C: parseFloat(teC.toFixed(2)),
+                        D: parseFloat(teD.toFixed(2)),
+                        E: parseFloat(teE.toFixed(2))
+                    }
+                }
+            });
+        } catch (error) {
+            return res.status(500).json({ exito: false, error: "Falla analítica en el motor PERT-CPM: " + error.message });
+        }
     }
-},
 };
 module.exports = moduloAdministracion;
